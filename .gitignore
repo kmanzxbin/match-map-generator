@@ -1,0 +1,6 @@
+/target/
+/.idea/
+/match-map-generator.iml
+/src/test/resources/健身运动组计分表.xls
+/src/test/resources/女单计分表.xls
+/src/test/resources/男单计分表.xls
