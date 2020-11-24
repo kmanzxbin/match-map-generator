@@ -53,6 +53,17 @@ public class MatchMapGenerator {
         matchMapGenerator.generator();
     }
 
+    public void generator(List<String> list) {
+        try{
+        List<List<String>> groupLists = getGroupList(list,
+                list.size() / groupMemberNumber + (list.size() % groupMemberNumber == 0 ? 0 : 1));
+        outputScoringPaper(groupLists, scoringPaper);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+        System.out.println();
+    }
+
     public void generator() {
         List<String> list = null;
         try {
@@ -87,8 +98,14 @@ public class MatchMapGenerator {
      * @return
      * @throws IOException
      */
-    List<String> getList(String category) throws Exception {
-        List<String> lines = FileUtils.readLines(file, "utf-8");
+    public List<String> getList(String category) {
+        List<String> lines = null;
+        try {
+            lines = FileUtils.readLines(file, "utf-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return lines;
+        }
         lines = lines.stream().filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .collect(Collectors.toList());
@@ -126,7 +143,7 @@ public class MatchMapGenerator {
                 .distinct()
                 .collect(Collectors.toList());
         System.out.println("————————");
-        System.out.println(category + "参赛名单（" + lines.size() + "人）:");
+        System.out.println(category + "组参赛名单（" + lines.size() + "人）:");
         System.out.println(StringUtils.join(lines, "\n"));
         System.out.println("");
         return lines;
@@ -214,7 +231,7 @@ public class MatchMapGenerator {
         HSSFWorkbook workbook = new HSSFWorkbook();
 
         for (int i = 0; i < groupLists.size(); i++) {
-            makeSheet(workbook, getGroupId(i) + "组计分表", groupLists.get(i));
+            makeSheet(workbook, getGroupId(i) + "组", groupLists.get(i));
         }
 
         FileOutputStream xlsStream = new FileOutputStream(file);
@@ -244,24 +261,16 @@ public class MatchMapGenerator {
         font.setFontHeightInPoints((short) 10);
         sheet.setDefaultRowHeight((short) (1.2 * 256));
         sheet.setVerticallyCenter(true);
+        HSSFFont labelFont = workbook.createFont();
+        labelFont.setFontHeightInPoints((short) 12);
+        labelFont.setBold(true);
+
         CellStyle rightStyle = getCellStyle(workbook, HorizontalAlignment.RIGHT);
         CellStyle centerStyle = getCellStyle(workbook, HorizontalAlignment.CENTER);
         CellStyle leftStyle = getCellStyle(workbook, HorizontalAlignment.LEFT);
 
         int rowBase = 0;
-        HSSFRow row = sheet.createRow(rowBase++);
-        for (int i = 0; i < list.size(); i++) {
-            HSSFCell cell = row.createCell(i);
-            cell.setCellStyle(centerStyle);
-            setRichString(sheetName, font, cell);
-        }
-
-        sheet.addMergedRegion(new CellRangeAddress(
-                0, //first row (0-based)
-                0, //last row (0-based)
-                0, //first column (0-based)
-                list.size() - 1//last column (0-based)
-        ));
+        rowBase = addMergedCells(sheet, rowBase, list.size(), sheetName + "计分表", centerStyle, labelFont);
 
         // 构造矩阵
         List<String> cols = new ArrayList<>(list.subList(1, list.size()));
@@ -279,7 +288,7 @@ public class MatchMapGenerator {
         }
         // 构造竖表和内容
         for (int i = 0; i < rowList.size(); i++) {
-            sheetRow = sheet.createRow(i + rowBase);
+            sheetRow = sheet.createRow(rowBase++);
             cell = sheetRow.createCell(0);
             cell.setCellStyle(centerStyle);
             setRichString(rowList.get(i), font, cell);
@@ -297,13 +306,16 @@ public class MatchMapGenerator {
             cols.remove(cols.size() - 1);
         }
 
-        rowBase += rowList.size() + 2;
+        rowBase++;
 
         // 输出每轮对阵表
-        System.out.println(sheetName + "————对阵表————");
+        System.out.println(String.format("————%s对阵表————", sheetName));
         List<List<String[]>> roundOrders = makeRoundOrder(list);
+
+        rowBase = addMergedCells(sheet, rowBase, roundOrders.stream().mapToInt(List::size).max().getAsInt() + 1
+                , "对阵表", centerStyle, labelFont);
         for (int i = 0; i < roundOrders.size(); i++) {
-            sheetRow = sheet.createRow(i + rowBase);
+            sheetRow = sheet.createRow(rowBase++);
             List<String[]> order = roundOrders.get(i);
 
             cell = sheetRow.createCell(0);
@@ -316,6 +328,53 @@ public class MatchMapGenerator {
             }
         }
 
+          rowBase ++;
+        rowBase = addMergedCells(sheet, rowBase, list.size(), "积分表", centerStyle, labelFont);
+        rowBase = addPointsTable(sheet, rowBase, list, leftStyle, font);
+
+          rowBase ++;
+        rowBase = addMergedCells(sheet, rowBase, list.size(), "排名表", centerStyle, labelFont);
+        rowBase = addRankingTable(sheet, rowBase, list, leftStyle, font);
+    }
+
+
+    int addRankingTable( HSSFSheet sheet, int rowBase, List<String> list, CellStyle cellStyle, HSSFFont font) {
+        HSSFRow row = sheet.createRow(rowBase++);
+        for (int i = 0; i < list.size(); i++) {
+            HSSFCell cell = row.createCell(i);
+            cell.setCellStyle(cellStyle);
+            setRichString(String.format("第%s名：", i+1), font, cell);
+        }
+        return rowBase;
+    }
+
+    int addPointsTable( HSSFSheet sheet, int rowBase, List<String> list, CellStyle cellStyle, HSSFFont font) {
+        HSSFRow row = sheet.createRow(rowBase++);
+        for (int i = 0; i < list.size(); i++) {
+            HSSFCell cell = row.createCell(i);
+            cell.setCellStyle(cellStyle);
+            setRichString(list.get(i) + "：", font, cell);
+        }
+        return rowBase;
+    }
+
+
+    int addMergedCells( HSSFSheet sheet, int rowBase, int length, String value, CellStyle cellStyle, HSSFFont font) {
+        // 不能在此处对rowBase++ 因为下面要合并这一行
+        HSSFRow row = sheet.createRow(rowBase);
+        for (int i = 0; i < length; i++) {
+            HSSFCell cell = row.createCell(i);
+            cell.setCellStyle(cellStyle);
+            setRichString(value, font, cell);
+        }
+
+        sheet.addMergedRegion(new CellRangeAddress(
+                rowBase, //first row (0-based)
+                rowBase, //last row (0-based)
+                0, //first column (0-based)
+                length - 1//last column (0-based)
+        ));
+        return ++rowBase;
     }
 
     void setRichString(String textValue, HSSFFont font, HSSFCell cell) {

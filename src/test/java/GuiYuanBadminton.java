@@ -2,6 +2,8 @@
 import org.benjamin.matchmapgenerator.MatchMapGenerator;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author: Benjamin Zheng
@@ -11,20 +13,34 @@ public class GuiYuanBadminton {
     public static void main(String[] args) {
         MatchMapGenerator matchMapGenerator = new MatchMapGenerator();
         matchMapGenerator.setFile(new File("src/test/resources/报名表.txt"));
-        matchMapGenerator.setScoringPaper(new File("src/test/resources/男单计分表.xls"));
-        matchMapGenerator.setCategory("男单");
-        matchMapGenerator.setGroupMemberNumber(10);
-        matchMapGenerator.generator();
 
-        matchMapGenerator.setScoringPaper(new File("src/test/resources/女单计分表.xls"));
-        matchMapGenerator.setCategory("女单");
-        matchMapGenerator.setGroupMemberNumber(5);
-        matchMapGenerator.generator();
+        generator(matchMapGenerator, "男单", 5);
+        generator(matchMapGenerator, "女单", 5);
+        generator(matchMapGenerator, "健身", 4);
 
-        matchMapGenerator.setScoringPaper(new File("src/test/resources/健身运动组计分表.xls"));
-        matchMapGenerator.setCategory("健身");
-        matchMapGenerator.setGroupMemberNumber(4);
-        matchMapGenerator.generator();
+        matchMapGenerator.setCategory(null);
+        List<String> list = matchMapGenerator.getList("男双");
+        generator(matchMapGenerator, 3, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "男双");
+        list = matchMapGenerator.getList("女双");
+        generator(matchMapGenerator, 3, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "女双");
+    }
 
+    static void generator(MatchMapGenerator matchMapGenerator, String category, int groupMemberNumber) {
+        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s组计分表.xls", category)));
+        matchMapGenerator.setCategory(category);
+        matchMapGenerator.setGroupMemberNumber(groupMemberNumber);
+        matchMapGenerator.generator();
+    }
+
+    static void generator(MatchMapGenerator matchMapGenerator, int groupMemberNumber, int memberNumber, String prefix) {
+
+        List<String> list = new ArrayList();
+        for (int i = 0; i < memberNumber; i++) {
+            list.add(prefix + (i+1));
+        }
+        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s组计分表.xls", prefix)));
+        matchMapGenerator.setCategory(prefix);
+        matchMapGenerator.setGroupMemberNumber(groupMemberNumber);
+        matchMapGenerator.generator(list);
     }
 }
