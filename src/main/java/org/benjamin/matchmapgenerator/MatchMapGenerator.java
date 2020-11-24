@@ -270,7 +270,7 @@ public class MatchMapGenerator {
         CellStyle leftStyle = getCellStyle(workbook, HorizontalAlignment.LEFT);
 
         int rowBase = 0;
-        rowBase = addMergedCells(sheet, rowBase, list.size(), sheetName + "计分表", centerStyle, labelFont);
+        rowBase = addMergedCells(sheet, rowBase, list.size(), category + sheetName + "分组计分表", centerStyle, labelFont);
 
         // 构造矩阵
         List<String> cols = new ArrayList<>(list.subList(1, list.size()));
@@ -309,7 +309,7 @@ public class MatchMapGenerator {
         rowBase++;
 
         // 输出每轮对阵表
-        System.out.println(String.format("————%s对阵表————", sheetName));
+        System.out.println(String.format("————%s对阵表————", category + sheetName));
         List<List<String[]>> roundOrders = makeRoundOrder(list);
 
         rowBase = addMergedCells(sheet, rowBase, roundOrders.stream().mapToInt(List::size).max().getAsInt() + 1

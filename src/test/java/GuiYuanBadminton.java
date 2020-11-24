@@ -16,17 +16,19 @@ public class GuiYuanBadminton {
 
         generator(matchMapGenerator, "男单", 5);
         generator(matchMapGenerator, "女单", 5);
-        generator(matchMapGenerator, "健身", 4);
+        generator(matchMapGenerator, "健身休闲", 4);
 
         matchMapGenerator.setCategory(null);
         List<String> list = matchMapGenerator.getList("男双");
-        generator(matchMapGenerator, 3, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "男双");
+        generator(matchMapGenerator, 4, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "男双");
         list = matchMapGenerator.getList("女双");
-        generator(matchMapGenerator, 3, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "女双");
+        generator(matchMapGenerator, 4, list.size() / 2 + (list.size() % 2 ==0? 0 : 1), "女双");
+
+        // todo 增加输出分组名单的功能
     }
 
     static void generator(MatchMapGenerator matchMapGenerator, String category, int groupMemberNumber) {
-        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s组计分表.xls", category)));
+        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s分组计分表.xls", category)));
         matchMapGenerator.setCategory(category);
         matchMapGenerator.setGroupMemberNumber(groupMemberNumber);
         matchMapGenerator.generator();
@@ -38,7 +40,7 @@ public class GuiYuanBadminton {
         for (int i = 0; i < memberNumber; i++) {
             list.add(prefix + (i+1));
         }
-        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s组计分表.xls", prefix)));
+        matchMapGenerator.setScoringPaper(new File(String.format("src/test/resources/%s分组计分表.xls", prefix)));
         matchMapGenerator.setCategory(prefix);
         matchMapGenerator.setGroupMemberNumber(groupMemberNumber);
         matchMapGenerator.generator(list);
