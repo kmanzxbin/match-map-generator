@@ -28,6 +28,14 @@ public class MatchMapGenerator {
      */
     int groupMemberNumber;
 
+    File groupingOutputFile;
+
+    public void setFile(File file) {
+        this.file = file;
+        groupingOutputFile = new File(file.getParentFile(), "grouping.txt");
+        groupingOutputFile.delete();
+    }
+
     public static void main(String[] args) throws Exception {
         new MatchMapGenerator().makeSnake(4,4);
     }
@@ -178,12 +186,25 @@ public class MatchMapGenerator {
 //                groupList.add(list.get(j));
 //            }
 //        }
-        System.out.println(String.format("%s分组名单:", category));
+        String str = String.format("%s分组名单:", category);
+        System.out.println(str);
+        output(groupingOutputFile, "\n\t" + str);
         for (int i = 0; i < groupLists.size(); i++) {
-            System.out.println(String.format("%s组: %s", getGroupId(i), groupLists.get(i)));
+            str = String.format("%s组: %s", getGroupId(i), groupLists.get(i));
+            System.out.println(str);
+            output(groupingOutputFile, "\t" + str);
         }
         System.out.println();
         return groupLists;
+    }
+
+    void output(File file, String content) {
+//        System.out.println(content);
+        try {
+            FileUtils.write(file, content + "\n", "utf-8", true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     int[][] makeSnake(int width, int high) {
@@ -213,7 +234,7 @@ public class MatchMapGenerator {
             for (int j = 0; j < matrix[i].length; j++) {
                 list.add(matrix[i][j]);
             }
-            System.out.println(list);
+//            System.out.println(list);
         }
         return matrix;
     }
