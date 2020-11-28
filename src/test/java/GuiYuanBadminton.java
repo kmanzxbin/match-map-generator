@@ -16,7 +16,7 @@ public class GuiYuanBadminton {
 
         generator(matchMapGenerator, "男单", 5);
         generator(matchMapGenerator, "女单", 5);
-        generator(matchMapGenerator, "健身休闲", 4);
+        generator(matchMapGenerator, "健身休闲", 5);
 
         matchMapGenerator.setCategory(null);
         List<String> list = matchMapGenerator.getList("男双");

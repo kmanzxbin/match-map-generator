@@ -349,11 +349,11 @@ public class MatchMapGenerator {
             }
         }
 
-          rowBase ++;
-        rowBase = addMergedCells(sheet, rowBase, list.size(), "积分表", centerStyle, labelFont);
+        rowBase ++;
+        rowBase = addMergedCells(sheet, rowBase, list.size(), "积分/签到表", centerStyle, labelFont);
         rowBase = addPointsTable(sheet, rowBase, list, leftStyle, font);
 
-          rowBase ++;
+        rowBase ++;
         rowBase = addMergedCells(sheet, rowBase, list.size(), "排名表", centerStyle, labelFont);
         rowBase = addRankingTable(sheet, rowBase, list, leftStyle, font);
     }
@@ -371,10 +371,15 @@ public class MatchMapGenerator {
 
     int addPointsTable( HSSFSheet sheet, int rowBase, List<String> list, CellStyle cellStyle, HSSFFont font) {
         HSSFRow row = sheet.createRow(rowBase++);
+        HSSFRow signRow = sheet.createRow(rowBase++);
+
         for (int i = 0; i < list.size(); i++) {
             HSSFCell cell = row.createCell(i);
             cell.setCellStyle(cellStyle);
             setRichString(list.get(i) + "：", font, cell);
+            cell = signRow.createCell(i);
+            cell.setCellStyle(cellStyle);
+            setRichString("签到：", font, cell);
         }
         return rowBase;
     }
